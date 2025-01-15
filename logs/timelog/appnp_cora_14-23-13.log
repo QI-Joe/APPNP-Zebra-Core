@@ -1,0 +1,26 @@
+-------------Node size 2708 | This Temporal 0 Highest Val Acc Score Reuslt-------------
+Train Acc:        0.6397   | Val Acc:          0.3257   | Test Acc:         0.2996   | Strict Test Acc:  0.2996  
+Test Macro Prec:   0.1063   | Test Macro Rec:    0.1435   | Test Macro F1:     0.0685  
+Test Micro Prec:   0.2996   | Test Micro Rec:    0.2996   | Test Micro F1:     0.2996  
+
+
+-------------Node size 2708 | This Temporal 0 Highest Test Acc Score Reuslt-------------
+Train Acc:        0.5491   | Val Acc:          0.3124   | Test Acc:         0.2996   | Strict Test Acc:  0.2996  
+Test Macro Prec:   0.0785   | Test Macro Rec:    0.1431   | Test Macro F1:     0.0667  
+Test Micro Prec:   0.2996   | Test Micro Rec:    0.2996   | Test Micro F1:     0.2996  
+
+
+-------------Epoch 0 Score Reuslt-------------
+
+Train Acc:        0.5491   | Val Acc:          0.3124   | Test Acc:         0.2996   | Strict Test Acc:  0.2996  
+Test Macro Prec:   0.0785   | Test Macro Rec:    0.1431   | Test Macro F1:     0.0667  
+Test Micro Prec:   0.2996   | Test Micro Rec:    0.2996   | Test Micro F1:     0.2996  
+
+
+-------------Epoch 5 Score Reuslt-------------
+
+Train Acc:        0.6397   | Val Acc:          0.3257   | Test Acc:         0.2996   | Strict Test Acc:  0.2996  
+Test Macro Prec:   0.1063   | Test Macro Rec:    0.1435   | Test Macro F1:     0.0685  
+Test Micro Prec:   0.2996   | Test Micro Rec:    0.2996   | Test Micro F1:     0.2996  
+
+

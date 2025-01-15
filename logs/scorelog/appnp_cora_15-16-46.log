@@ -1,0 +1,78 @@
+-------------Node size 2708 | This Temporal 0 Highest Val Acc Score Reuslt-------------
+Train Acc:        0.5765   | Val Acc:          0.3013   | Test Acc:         0.2981   | Strict Test Acc:  0.2981  
+Test Macro Prec:   0.1207   | Test Macro Rec:    0.1452   | Test Macro F1:     0.0723  
+Test Micro Prec:   0.2981   | Test Micro Rec:    0.2981   | Test Micro F1:     0.2981  
+
+
+-------------Node size 2708 | This Temporal 0 Highest Test Acc Score Reuslt-------------
+Train Acc:        0.5765   | Val Acc:          0.3013   | Test Acc:         0.2981   | Strict Test Acc:  0.2981  
+Test Macro Prec:   0.1207   | Test Macro Rec:    0.1452   | Test Macro F1:     0.0723  
+Test Micro Prec:   0.2981   | Test Micro Rec:    0.2981   | Test Micro F1:     0.2981  
+
+
+-------------Epoch 0 Score Reuslt-------------
+
+Train Acc:        0.5164   | Val Acc:          0.2917   | Test Acc:         0.2978   | Strict Test Acc:  0.2978  
+Test Macro Prec:   0.1108   | Test Macro Rec:    0.1444   | Test Macro F1:     0.0702  
+Test Micro Prec:   0.2978   | Test Micro Rec:    0.2978   | Test Micro F1:     0.2978  
+
+
+-------------Epoch 5 Score Reuslt-------------
+
+Train Acc:        0.5765   | Val Acc:          0.3013   | Test Acc:         0.2981   | Strict Test Acc:  0.2981  
+Test Macro Prec:   0.1207   | Test Macro Rec:    0.1452   | Test Macro F1:     0.0723  
+Test Micro Prec:   0.2981   | Test Micro Rec:    0.2981   | Test Micro F1:     0.2981  
+
+
+-------------Node size 2708 | This Temporal 1 Highest Val Acc Score Reuslt-------------
+Train Acc:        0.6459   | Val Acc:          0.3143   | Test Acc:         0.3242   | Strict Test Acc:  0.3242  
+Test Macro Prec:   0.3061   | Test Macro Rec:    0.1966   | Test Macro F1:     0.176   
+Test Micro Prec:   0.3242   | Test Micro Rec:    0.3242   | Test Micro F1:     0.3242  
+
+
+-------------Node size 2708 | This Temporal 1 Highest Test Acc Score Reuslt-------------
+Train Acc:        0.5248   | Val Acc:          0.3067   | Test Acc:         0.3309   | Strict Test Acc:  0.3309  
+Test Macro Prec:   0.3253   | Test Macro Rec:    0.2196   | Test Macro F1:     0.2122  
+Test Micro Prec:   0.3309   | Test Micro Rec:    0.3309   | Test Micro F1:     0.3309  
+
+
+-------------Epoch 0 Score Reuslt-------------
+
+Train Acc:        0.5248   | Val Acc:          0.3067   | Test Acc:         0.3309   | Strict Test Acc:  0.3309  
+Test Macro Prec:   0.3253   | Test Macro Rec:    0.2196   | Test Macro F1:     0.2122  
+Test Micro Prec:   0.3309   | Test Micro Rec:    0.3309   | Test Micro F1:     0.3309  
+
+
+-------------Epoch 5 Score Reuslt-------------
+
+Train Acc:        0.6459   | Val Acc:          0.3143   | Test Acc:         0.3242   | Strict Test Acc:  0.3242  
+Test Macro Prec:   0.3061   | Test Macro Rec:    0.1966   | Test Macro F1:     0.176   
+Test Micro Prec:   0.3242   | Test Micro Rec:    0.3242   | Test Micro F1:     0.3242  
+
+
+-------------Node size 2708 | This Temporal 2 Highest Val Acc Score Reuslt-------------
+Train Acc:        0.9058   | Val Acc:          0.8561   | Test Acc:         0.8962   | Strict Test Acc:  0.8962  
+Test Macro Prec:   0.8883   | Test Macro Rec:    0.8851   | Test Macro F1:     0.8866  
+Test Micro Prec:   0.8962   | Test Micro Rec:    0.8962   | Test Micro F1:     0.8962  
+
+
+-------------Node size 2708 | This Temporal 2 Highest Test Acc Score Reuslt-------------
+Train Acc:        0.922    | Val Acc:          0.8524   | Test Acc:         0.9069   | Strict Test Acc:  0.9069  
+Test Macro Prec:   0.9002   | Test Macro Rec:    0.8985   | Test Macro F1:     0.8993  
+Test Micro Prec:   0.9069   | Test Micro Rec:    0.9069   | Test Micro F1:     0.9069  
+
+
+-------------Epoch 0 Score Reuslt-------------
+
+Train Acc:        0.9058   | Val Acc:          0.8561   | Test Acc:         0.8962   | Strict Test Acc:  0.8962  
+Test Macro Prec:   0.8883   | Test Macro Rec:    0.8851   | Test Macro F1:     0.8866  
+Test Micro Prec:   0.8962   | Test Micro Rec:    0.8962   | Test Micro F1:     0.8962  
+
+
+-------------Epoch 5 Score Reuslt-------------
+
+Train Acc:        0.922    | Val Acc:          0.8524   | Test Acc:         0.9069   | Strict Test Acc:  0.9069  
+Test Macro Prec:   0.9002   | Test Macro Rec:    0.8985   | Test Macro F1:     0.8993  
+Test Micro Prec:   0.9069   | Test Micro Rec:    0.9069   | Test Micro F1:     0.9069  
+
+
