@@ -68,6 +68,16 @@ class TPPR_Simple(object):
         self.n_ppr = 2
         self.norm_list, self.PPR_list = self.reset_tppr()
 
+    def get_blacklist(self):
+        """
+        function designed to proofread the out of bound T-PPR existence, blacklist
+        is the edge idx discovered that should appeared in T-PPR matrix
+        """
+        path = r"logs/tppr_anchor_matrix/blacklist.txt"
+        with open(path, 'r') as file:
+            blacklist = [tuple(map(int, line.strip().split())) for line in file.readlines()]
+        return blacklist
+
     def reset_node_num(self, num: int):
         self.num_nodes = num
 
@@ -144,13 +154,14 @@ class TPPR_Simple(object):
 
 
     def streaming_topk(self, source_nodes, timestamps, edge_idxs, updated: Running_Permit = None) -> None:
-        premit_license = None
-        if updated != None and  premit_license == None:
-            premit_license = updated
-        if premit_license == None and updated == None:
-            raise ValueError("Please provide the updated status.")
+        # premit_license = None
+        # if updated != None and  premit_license == None:
+        #     premit_license = updated
+        # if premit_license == None and updated == None:
+        #     raise ValueError("Please provide the updated status.")
         n_edges=len(source_nodes) // 2
-        n_nodes=len(source_nodes)
+        blacklist = self.get_blacklist()
+        # n_nodes=len(source_nodes)
         
 
         ###########  enumerate tppr models ###########
@@ -171,6 +182,11 @@ class TPPR_Simple(object):
                 if not (i+1)%1000: print(f"node updated to {i+1} edges")
                 ############# ! then update the PPR values here #############
                 for index,pair in enumerate(pairs):
+                    if pair in blacklist:
+                        print("the out of bound pair exists, alter here", pair)
+                        sys.exit(0)
+
+
                     s1=pair[0]
                     s2=pair[1]
 
@@ -187,6 +203,8 @@ class TPPR_Simple(object):
                         new_norm=last_norm*beta+beta
                         scale_s1=last_norm/new_norm*beta
                         scale_s2=beta/new_norm*(1-alpha)
+
+                        # tppr neighbor residual propagator
                         for key, value in t_s1_PPR.items():
                             t_s1_PPR[key]=value*scale_s1     
 
@@ -481,7 +499,7 @@ def row_weight_difference(tppr: torch.sparse, ppr: torch.Tensor, is_dense: bool 
     full_eq = torch.where(tppr_avoid_nan == ppr_union, torch.tensor(1), torch.tensor(0)).nonzero()
     diff_weight = torch.abs(tppr_union - ppr_union) / tppr_avoid_nan
     nomalizer = torch.tensor([torch.count_nonzero(row) for row in tppr])
-    avg_diff_weight = diff_weight.sum(dim=1) / nomalizer
+    avg_diff_weight = diff_weight.sum(dim=1) / (nomalizer+1e-6)
     return avg_diff_weight, full_eq
 
 def node_index_anchoring(input_edge: union[torch.Tensor | np.ndarray]) -> torch.Tensor:

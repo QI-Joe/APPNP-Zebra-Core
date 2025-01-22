@@ -22,12 +22,14 @@ import numpy as np
 # from utils.my_NeighborLoader import Fixed_NeighborLoader
 from utils.uselessCode import create_propagator_matrix, TPPR_Simple, Running_Permit, node_index_anchoring
 from utils.my_dataloader import Temporal_Dataloader
+import time
+import os
 
 def APPNP_config(model_details):
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default="cora", help='Dataset to use.')
-    parser.add_argument('--snapshot', type=int, default=5, help='Snapshot to use.')
-    parser.add_argument('--epoch_train', type=int, default=400, help='Number of epochs to train.')
+    parser.add_argument('--snapshot', type=int, default=4, help='Snapshot to use.')
+    parser.add_argument('--epoch_train', type=int, default=1500, help='Number of epochs to train.')
     parser.add_argument('--alpha', type=float, default=0.1, help='Teleport probability.')
     parser.add_argument('--hidden', type=int, default=256, help='Number of hidden units.')
     parser.add_argument("--K", type=int, default=15, help="Number of iterations.")
@@ -463,6 +465,9 @@ def TPPR_invoking(tppr: TPPR_Simple, graph_data: Temporal_Dataloader, kwargs: di
     flatten_tppr_list = graph_data.test_fast_sparse_build(tppr_node, tppr_weight)
     # at here, the sparse matrix should not be temporal graph size, but ALL GRAPH SIZE
     _, tppr_sparse = tppr2matrix(flatten_tppr_list, N=all_node_size)
+    
+    anchor_node_num = tppr_node.shape[0]
+    anchor_ppr_save(tppr_sparse.to_dense(), anchor_nodes=anchor_node_num, edge_len=graph_data.edge_index.shape[1])
 
     if tppr_sparse.device == torch.device("cuda"):
         tppr_sparse = tppr_sparse.to("cpu")
@@ -522,11 +527,15 @@ def data_split(data: Temporal_Dataloader):
     data.val_mask = mask
     return data
 
-def mask_alignment(graph: Temporal_Dataloader):
-    train_mask, val_mask = graph.train_mask, graph.val_mask
+def anchor_ppr_save(tppr: torch.Tensor, anchor_nodes: int, edge_len):
+    """
+    to_dense matrix
+    """
+    start_time = round(time.time(), 3)
+    file_path = r"logs/tppr_anchor_matrix"
+    file_name = rf"{anchor_nodes}_{edge_len}.pt"
+    torch.save(tppr, os.path.join(file_path, file_name))
 
-    
-    ...
 
 """
 else:

@@ -53,7 +53,7 @@ def main_APPN(args, time_: TimeRecord, hook_queue: queue = None, hook: bool = Fa
     prj = LogRegression(layer2[-1], num_classes).to(device)
 
     # new_ppr.tppr_entire_graph_updating(graph=graph)
-    for t in range(3):
+    for t in range(1):
         time_.temporal_record()
         # dataloading has problem. Priority of debugging uncertain data loading method should put to first.
         
@@ -121,7 +121,7 @@ def main_APPN(args, time_: TimeRecord, hook_queue: queue = None, hook: bool = Fa
                 t1_emb = new_ppr.forward(feature_values=t1_dense_feature, edge_index=edge_idx)
                 
                 test_metrics, _ = eval_model_Dy(t1_emb, t1_temporal, num_classes)
-                # test_metrics = dict()
+                
                 test_metrics["train_acc"], test_metrics["val_acc"] = acc, eval_metrics["accuracy"]
                 bench_collector.append(test_metrics)
                 new_ppr.propagator_switch()
