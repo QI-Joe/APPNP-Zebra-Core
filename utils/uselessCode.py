@@ -98,43 +98,43 @@ class TPPR_Simple(object):
 
         return norm_list, PPR_list
 
-    def extract_streaming_tppr(self, tppr, current_timestamp, k, node_list, edge_idxs_list, delta_time_list, weight_list,position):
+    def extract_streaming_tppr(self, tppr, k, node_list, edge_idxs_list, weight_list, position, current_timestamp=None, delta_time_list= None):
         if len(tppr)!=0:
             tmp_nodes=np.zeros(k,dtype=np.int32)
             tmp_edge_idxs=np.zeros(k,dtype=np.int32)
-            tmp_timestamps=np.zeros(k,dtype=np.float32)
+            # tmp_timestamps=np.zeros(k,dtype=np.float32)
             tmp_weights=np.zeros(k,dtype=np.float32)
 
             for j,(key,weight) in enumerate(tppr.items()):
                 edge_idx=key[0]
                 node=key[1]
-                timestamp=key[2]
+                # timestamp=key[2]
                 tmp_nodes[j]=node
 
                 tmp_edge_idxs[j]=edge_idx
-                tmp_timestamps[j]=timestamp
+                # tmp_timestamps[j]=timestamp
                 tmp_weights[j]=weight
 
-            tmp_timestamps=current_timestamp-tmp_timestamps
+            # tmp_timestamps=current_timestamp-tmp_timestamps
             node_list[position]=tmp_nodes
             edge_idxs_list[position]=tmp_edge_idxs
-            delta_time_list[position]=tmp_timestamps
+            # delta_time_list[position]=tmp_timestamps
             weight_list[position]=tmp_weights
 
 
-    def single_extraction(self, source_nodes, timestamps)->tuple[list[np.ndarray]]:
+    def single_extraction(self, source_nodes, timestamps=None)->tuple[list[np.ndarray]]:
         n_edges = len(source_nodes) // 2
         n_nodes = len(source_nodes)
 
         batch_node_list = []
         batch_edge_idxs_list = []
-        batch_delta_time_list = []
+        # batch_delta_time_list = []
         batch_weight_list = []
 
         for _ in range(self.n_tppr):
             batch_node_list.append(np.zeros((n_nodes, self.k), dtype=np.int32)) 
             batch_edge_idxs_list.append(np.zeros((n_nodes, self.k), dtype=np.int32)) 
-            batch_delta_time_list.append(np.zeros((n_nodes, self.k), dtype=np.float32)) 
+            # batch_delta_time_list.append(np.zeros((n_nodes, self.k), dtype=np.float32)) 
             batch_weight_list.append(np.zeros((n_nodes, self.k), dtype=np.float32)) 
         
         for index0, alpha in enumerate(self.alpha_list):
@@ -143,12 +143,13 @@ class TPPR_Simple(object):
             for i in range(n_edges):
                 source=source_nodes[i]
                 target=source_nodes[i+n_edges]
-                timestamp=timestamps[i]
+                # timestamp=timestamps[i]
 
                 ########### ! first extract the top-k neighbors and fill the list ###########
-                self.extract_streaming_tppr(inter_PPR_list[source], timestamp, self.k, batch_node_list[index0], batch_edge_idxs_list[index0], batch_delta_time_list[index0], batch_weight_list[index0],i)
-                self.extract_streaming_tppr(inter_PPR_list[target],timestamp, self.k, batch_node_list[index0],batch_edge_idxs_list[index0],batch_delta_time_list[index0],batch_weight_list[index0],i+n_edges)
+                self.extract_streaming_tppr(inter_PPR_list[source], self.k, batch_node_list[index0], batch_edge_idxs_list[index0], batch_weight_list[index0],i)
+                self.extract_streaming_tppr(inter_PPR_list[target], self.k, batch_node_list[index0],batch_edge_idxs_list[index0], batch_weight_list[index0],i+n_edges)
         
+                # self.extract_streaming_tppr(inter_PPR_list[target],timestamp, self.k, batch_node_list[index0],batch_edge_idxs_list[index0],batch_delta_time_list[index0],batch_weight_list[index0],i+n_edges)
         return batch_node_list, batch_weight_list # batch_edge_idxs_list, batch_delta_time_list,
 
 

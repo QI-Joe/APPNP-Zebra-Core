@@ -1,4 +1,4 @@
-from models.APPN import APPNP, APPNP_config, TPPR_invoking, data_split
+from models.APPN import APPNP, TPPR_invoking, data_split
 import numpy as np
 from utils.my_dataloader import Temporal_Dataloader, data_load, Temporal_Splitting, Dynamic_Dataloader, to_cuda
 from Evaluation.time_evaluation import TimeRecord
@@ -137,6 +137,20 @@ def main_APPN(args, time_: TimeRecord, hook_queue: queue = None, hook: bool = Fa
     time_.record_end()
     time_.to_log()
     print("PPR used is:", ppr_mode)
+
+def APPNP_config(model_details):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset', type=str, default="cora", help='Dataset to use.')
+    parser.add_argument('--snapshot', type=int, default=8, help='Snapshot to use.')
+    parser.add_argument('--epoch_train', type=int, default=1500, help='Number of epochs to train.')
+    parser.add_argument('--alpha', type=float, default=0.1, help='Teleport probability.')
+    parser.add_argument('--hidden', type=int, default=256, help='Number of hidden units.')
+    parser.add_argument("--K", type=int, default=15, help="Number of iterations.")
+    parser.add_argument('--batch_size', type=int, default=1024, help='Batch size.')
+    parser.add_argument('--neighbor_sample_size', type=int, default=400, help='Number of largest round neighbors to sample.')
+
+    argrs = parser.parse_args(model_details)
+    return argrs
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

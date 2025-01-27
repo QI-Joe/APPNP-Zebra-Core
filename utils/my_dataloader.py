@@ -462,7 +462,7 @@ class Temporal_Splitting(object):
 
             if kwargs["non_split"]:
                 end = min(start + span / snapshot, max_time)
-                end = 10_000
+                # end = 10_000
                 sample_time = (edge_attr <= end) # returns an bool value
             else:
                 tem_start = T[idx-1] if idx>0 else 0

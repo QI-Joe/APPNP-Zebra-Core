@@ -24,20 +24,7 @@ from utils.uselessCode import create_propagator_matrix, TPPR_Simple, Running_Per
 from utils.my_dataloader import Temporal_Dataloader
 import time
 import os
-
-def APPNP_config(model_details):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, default="cora", help='Dataset to use.')
-    parser.add_argument('--snapshot', type=int, default=4, help='Snapshot to use.')
-    parser.add_argument('--epoch_train', type=int, default=1500, help='Number of epochs to train.')
-    parser.add_argument('--alpha', type=float, default=0.1, help='Teleport probability.')
-    parser.add_argument('--hidden', type=int, default=256, help='Number of hidden units.')
-    parser.add_argument("--K", type=int, default=15, help="Number of iterations.")
-    parser.add_argument('--batch_size', type=int, default=1024, help='Batch size.')
-    parser.add_argument('--neighbor_sample_size', type=int, default=400, help='Number of largest round neighbors to sample.')
-
-    argrs = parser.parse_args(model_details)
-    return argrs
+import copy
 
 class Memory_dense(torch.nn.Module):
     def __init__(self, ori_weight, old_bias, ori_shape: tuple[int, int], *args, **kwargs) -> None:
@@ -246,7 +233,7 @@ class APPNP(MessagePassing):
 
     def propagator_switch(self):
         self.propagator = self.last_propagator
-        print(self.propagator.shape, self.new_propagator.shape)
+        print(self.propagator[0].shape, self.new_propagator[0].shape)
 
     def tppr_idx_preapre(self, graph: Temporal_Dataloader):
         src_edges, dest_edges = graph.edge_index[0], graph.edge_index[1]
@@ -342,7 +329,7 @@ class APPNP(MessagePassing):
                 kwargs = {"full_update": False, "tranucate": self.T_shape, "updated": self.updated}
                 self.T_shape = graph.edge_index.shape[1]
             kwargs["nodes"] = self.graph.num_nodes
-            self.propagator = TPPR_invoking(tppr=self.tppr_, graph_data=graph, kwargs= kwargs).to_dense().to(self.device)
+            self.propagator = TPPR_invoking(tppr=self.tppr_, graph_data=graph, kwargs= kwargs)
         if training:
             self.last_propagator = self.propagator
         else:
@@ -382,12 +369,19 @@ class APPNP(MessagePassing):
             self.lock.release()
 
         if self.mode[0] == "exact" or self.mode[0] == "tppr":
-            self.predictions = torch.nn.functional.dropout(self.propagator,
+            weight_mtx = []
+            for weight_tmp in self.propagator:
+                weight_mtx.append(weight_tmp.to_dense().to(self.device))
+
+            for idx in range(len(weight_mtx)):
+                wtp = weight_mtx[idx]
+                self.predictions = torch.nn.functional.dropout(wtp,
                                                            p=self.dropout,
                                                            training=self.training)
 
-            self.predictions = torch.mm(self.predictions, latent_features_2)
+                self.predictions = torch.mm(self.predictions, latent_features_2)
 
+        """
         # I dont think this part could be used in the future
         elif self.mode[0] == "torch_tppr":
             
@@ -438,7 +432,7 @@ class APPNP(MessagePassing):
                 x = x * (1 - self.alpha)
                 x = x + self.alpha * h
             self.predictions = x
-
+        """
         
         if self.hook:
             self.lock.acquire()
@@ -458,20 +452,45 @@ class APPNP(MessagePassing):
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(K={self.K}, alpha={self.alpha})'
 
-def TPPR_invoking(tppr: TPPR_Simple, graph_data: Temporal_Dataloader, kwargs: dict):
+def list_extend2flatten(node: list[np.ndarray], weight: list[np.ndarray]):
+    length = len(node)
+    sparse_idx: list[tuple[np.ndarray]] = []
+    for i in range(length):
+        matchnode, matchweight = copy.deepcopy(node[i]), copy.deepcopy(weight[i])
+        sample_row_length, sample_col_length = matchnode.shape
+        sparse_row = np.empty((sample_col_length*sample_row_length, ), dtype=np.int32)
+        sparse_col = matchnode.flatten()
+        sprase_weight = matchweight.flatten()  # np.empty((1, sample_col_length*sample_row_length))
+
+        for rows in range(sample_row_length):
+            start, end = rows*sample_col_length, (rows+1)*sample_col_length
+
+            sparse_row[start:end] = [rows for _ in range(sample_col_length)]
+            # sparse_col[start:end] = matched_node
+            # sprase_weight[start:end] = matchweight[rows]
+        sparse_idx.append((sparse_row, sparse_col, sprase_weight))
+    return sparse_idx
+
+
+def TPPR_invoking(tppr: TPPR_Simple, graph_data: Temporal_Dataloader, kwargs: dict)->Union[list[np.ndarray] | torch.Tensor]:
     all_node_size = kwargs["nodes"]
     del kwargs["nodes"]
     tppr_node, tppr_weight = tppr_matrix_computing(full_data=graph_data, tppr = tppr, **kwargs)
-    flatten_tppr_list = graph_data.test_fast_sparse_build(tppr_node, tppr_weight)
+    flatten_tppr_list = list_extend2flatten(tppr_node, tppr_weight)
     # at here, the sparse matrix should not be temporal graph size, but ALL GRAPH SIZE
-    _, tppr_sparse = tppr2matrix(flatten_tppr_list, N=all_node_size)
+    # _, tppr_sparse = tppr2matrix(flatten_tppr_list, N=all_node_size)
     
-    anchor_node_num = tppr_node.shape[0]
-    anchor_ppr_save(tppr_sparse.to_dense(), anchor_nodes=anchor_node_num, edge_len=graph_data.edge_index.shape[1])
+    # anchor_node_num = tppr_node.shape[0]
+    # anchor_ppr_save(tppr_sparse.to_dense(), anchor_nodes=anchor_node_num, edge_len=graph_data.edge_index.shape[1])
+    # if tppr_weight.device == torch.device("cuda"):
+    #     tppr_weight = tppr_weight.to("cpu")
+    return [tppr2matrix_pro(component=component, N=all_node_size) for component in flatten_tppr_list]
 
-    if tppr_sparse.device == torch.device("cuda"):
-        tppr_sparse = tppr_sparse.to("cpu")
-    return tppr_sparse
+def tppr2matrix_pro(component, N: int):
+    row, col, weight = component
+    indices = np.vstack((row, col))
+    matrix = torch.sparse_coo_tensor(indices=indices, values=weight, size=torch.Size([N, N]))
+    return matrix
 
 def tppr2matrix(flatten_indices, N: int)->Union[torch.Tensor|np.ndarray]:
     indices_and_value = torch.Tensor(flatten_indices).T
@@ -483,12 +502,23 @@ def tppr2matrix(flatten_indices, N: int)->Union[torch.Tensor|np.ndarray]:
 
     return tppr_adj, tppr_adj_with_weight_sparse
 
+def node_timestamp(sources: torch.Tensor, timestamps: torch.Tensor):
+    sources = sources.cpu().numpy()
+    timestamps = timestamps.cpu().numpy()
+
+    time_dict: dict[int, float] = {}
+    for src, tmp in zip(sources, timestamps):
+        time_dict[src] = tmp
+    return time_dict
+
 def tppr_matrix_computing(full_data: Union[Data|Temporal_Dataloader], tppr: TPPR_Simple, full_update: bool, tranucate: int, updated: bool):
     permit = Running_Permit(event_or_snapshot="snapshot", ppr_updated=False)
 
     all_train_source, all_train_dest = full_data.ori_edge_index[0], full_data.ori_edge_index[1]
-    # all_train_time, all_train_edgeIdx = full_data.edge_attr.cpu().numpy(), np.array(range(0, full_data.ori_edge_index.shape[1]))
-    all_train_time, all_train_edgeIdx = np.array(range(0, full_data.ori_edge_index.shape[1])), np.array(range(0, full_data.ori_edge_index.shape[1]))
+    if isinstance(full_data.edge_attr, torch.Tensor):
+        all_train_time, all_train_edgeIdx = full_data.edge_attr.cpu().numpy(), np.array(range(0, full_data.ori_edge_index.shape[1]))
+    else:
+        all_train_time, all_train_edgeIdx = np.array(range(0, full_data.ori_edge_index.shape[1])), np.array(range(0, full_data.ori_edge_index.shape[1]))
     input_source = np.concatenate([all_train_source, all_train_dest])
 
     if full_update:
@@ -496,25 +526,25 @@ def tppr_matrix_computing(full_data: Union[Data|Temporal_Dataloader], tppr: TPPR
         timestamps, edge_idxs = all_train_time, all_train_edgeIdx
     else:
         tranucate_train_source, tranucate_train_dest = full_data.ori_edge_index[0, tranucate:], full_data.ori_edge_index[1, tranucate:]
-        # tranucate_train_time, tranucate_train_edgeIdx = full_data.edge_attr.cpu().numpy()[tranucate:], np.array(range(tranucate, full_data.ori_edge_index.shape[1]))
-        tranucate_train_time, tranucate_train_edgeIdx = np.array(range(tranucate, full_data.ori_edge_index.shape[1])), np.array(range(tranucate, full_data.ori_edge_index.shape[1]))
+        if isinstance(full_data.edge_attr, torch.Tensor):
+            tranucate_train_time, tranucate_train_edgeIdx = full_data.edge_attr.cpu().numpy()[tranucate:], np.array(range(tranucate, full_data.ori_edge_index.shape[1]))
+        else:
+            tranucate_train_time, tranucate_train_edgeIdx = np.array(range(tranucate, full_data.ori_edge_index.shape[1])), np.array(range(tranucate, full_data.ori_edge_index.shape[1]))
         calling_source = np.concatenate([tranucate_train_source, tranucate_train_dest])
         update_source = calling_source
         timestamps, edge_idxs = tranucate_train_time, tranucate_train_edgeIdx
     
-
-    permit.set_all_true()
-    
     tppr.streaming_topk(source_nodes=update_source, timestamps=timestamps, edge_idxs=edge_idxs, updated=permit)
-    selected_node, selected_weight = tppr.single_extraction(input_source, timestamps=all_train_time)
+    target_node = list(set(input_source))
+    selected_node, selected_weight = tppr.single_extraction(target_node)
 
-    node_mask = node_index_anchoring(input_source)
-    anchor_node, anchor_weight = selected_node[0][node_mask], selected_weight[0][node_mask]
+    # node_mask = node_index_anchoring(input_source)
+    # anchor_node, anchor_weight = selected_node[0][node_mask], selected_weight[0][node_mask]
 
-    if anchor_node.shape[0] != anchor_weight.shape[0] != node_mask.shape[0]:
-        raise ValueError("Anchor node length not right.")
+    # if anchor_node.shape[0] != anchor_weight.shape[0] != node_mask.shape[0]:
+    #     raise ValueError("Anchor node length not right.")
 
-    return anchor_node, anchor_weight
+    return selected_node, selected_weight
 
 
 def data_split(data: Temporal_Dataloader):
